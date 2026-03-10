@@ -2,7 +2,7 @@
   "name": "SkyGuide — California from Above",
   "short_name": "SkyGuide",
   "description": "Discover California landmarks from 35,000 feet. Works offline in Airplane Mode.",
-  "start_url": "/skyGuide/index.html",
+  "start_url": "https://flashscapes.github.io/skyGuide/index.html",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#0a0e1a",
