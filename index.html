@@ -1,234 +1,619 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="RoadGuide">
-  <meta name="theme-color" content="#0a0e1a">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <title>RoadGuide — California</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
-  <style>
-    :root{--dark:#0a0e1a;--gold:#c9a84c;--gold-light:#e8c97a;--gold-dim:#7a6030;--white:#f0f4ff;--dim:#8090b0;--green:#4caf80;--red:#e05050;--cb:rgba(255,255,255,.04);--cbr:rgba(255,255,255,.08);}
-    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{width:100%;height:100%;background:var(--dark);color:var(--white);font-family:'DM Sans',sans-serif;overflow:hidden;position:fixed;}
-    #bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 20%,rgba(26,42,74,.8) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(15,24,41,.9) 0%,transparent 60%),var(--dark);}
-    #bg::before{content:'';position:absolute;inset:0;background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1px 1px at 30% 40%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1px 1px at 55% 10%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 75% 60%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 45% 80%,rgba(201,168,76,.35) 0%,transparent 100%),radial-gradient(1px 1px at 88% 25%,rgba(255,255,255,.4) 0%,transparent 100%);}
-    #app{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;}
-    header{padding:48px 20px 12px;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05);}
-    .logo{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;line-height:1;}
-    .logo-sub{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-top:2px;}
-    .hst{text-align:right;}
-    .hst p{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--dim);}
-    .hst span{color:var(--gold-light);font-size:14px;font-family:'Bebas Neue',sans-serif;letter-spacing:2px;}
-    #bar{height:3px;background:rgba(255,255,255,.05);flex-shrink:0;position:relative;overflow:hidden;}
-    #bf{position:absolute;left:0;top:0;height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));width:100%;transition:width 1s linear;}
-    #scr{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 100px;}
-    #scr::-webkit-scrollbar{display:none;}
-    .dw{display:flex;justify-content:center;padding:18px 0 10px;}
-    #btn{display:flex;align-items:center;gap:12px;padding:16px 36px;border-radius:50px;border:1.5px solid rgba(201,168,76,.4);background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.03));cursor:pointer;transition:all .25s;-webkit-appearance:none;}
-    #btn.on{background:linear-gradient(135deg,rgba(76,175,128,.15),rgba(76,175,128,.04));border-color:rgba(76,175,128,.55);}
-    #btn:active{transform:scale(.97);}
-    .bi{font-size:26px;}
-    .bt{display:flex;flex-direction:column;}
-    .bl{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;color:var(--gold-light);}
-    #btn.on .bl{color:#6ecf9c;}
-    .bs{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--gold-dim);text-transform:uppercase;}
-    #btn.on .bs{color:rgba(76,175,128,.6);}
-    .st{display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--cb);border:1px solid var(--cbr);border-radius:10px;margin:8px 0;font-family:'DM Mono',monospace;font-size:10px;}
-    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-    .dot.i{background:var(--dim);}
-    .dot.s{background:var(--gold);animation:p 1.2s ease-in-out infinite;}
-    .dot.a{background:var(--green);animation:p 2s ease-in-out infinite;}
-    .dot.e{background:var(--red);}
-    @keyframes p{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
-    .sm{color:var(--dim);flex:1;}
-    #tmr{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);}
-    .sl{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin:12px 0 8px;}
-    #lst{display:flex;flex-direction:column;gap:8px;}
-    .li{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--cb);border:1px solid var(--cbr);border-radius:12px;cursor:pointer;transition:all .2s;}
-    .li:active{background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.25);}
-    .li.seen{opacity:.4;}
-    .lt{width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;background:rgba(201,168,76,.06);}
-    .le{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;background:rgba(201,168,76,.06);}
-    .li-i{flex:1;min-width:0;}
-    .li-n{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .li-c{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;}
-    .li-co{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold-dim);margin-top:1px;}
-    .li-r{text-align:right;flex-shrink:0;}
-    .li-d{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold-light);}
-    .li-b{font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);}
-    #gps{padding:8px 14px;background:var(--cb);border:1px solid var(--cbr);border-radius:10px;margin-top:12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap;}
-    #pop{position:fixed;top:0;left:0;right:0;z-index:200;transform:translateY(-110%);transition:transform .5s cubic-bezier(.16,1,.3,1);pointer-events:none;padding:10px 12px 0;}
-    #pop.show{transform:translateY(0);pointer-events:all;}
-    .pc{background:linear-gradient(160deg,rgba(15,24,41,.98),rgba(10,14,26,.99));border:1px solid rgba(201,168,76,.4);border-radius:20px;overflow:hidden;box-shadow:0 12px 60px rgba(0,0,0,.7);}
-    #pp{width:100%;height:145px;object-fit:cover;display:block;}
-    #pe{width:100%;height:145px;display:none;align-items:center;justify-content:center;font-size:60px;background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(26,42,74,.9));}
-    .pb{padding:14px 16px 16px;}
-    .pt{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
-    .ptl{flex:1;}
-    .ptag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:2px;}
-    .pnm{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;line-height:1;}
-    .pds{font-family:'DM Mono',monospace;font-size:10px;color:var(--dim);margin-top:3px;}
-    .pds b{color:var(--gold-light);font-weight:400;}
-    #px{width:30px;height:30px;border-radius:50%;flex-shrink:0;margin-top:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--dim);cursor:pointer;-webkit-appearance:none;}
-    .pf{font-size:13px;line-height:1.65;font-weight:300;}
-    .pf em{color:var(--gold-light);font-style:normal;font-weight:500;}
-    .pg{height:3px;background:rgba(255,255,255,.08);margin-top:12px;border-radius:2px;overflow:hidden;}
-    #pgb{height:100%;background:var(--gold);width:100%;transition:width .5s linear;}
-    .hdiv{width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.2),transparent);margin:14px 0;}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RoadGuide">
+<meta name="theme-color" content="#080c14">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>RoadGuide</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #080c14;
+  --gold: #c9a84c;
+  --glo: #e8c97a;
+  --gdim: rgba(201,168,76,.35);
+  --pale: #eef2ff;
+  --dim: rgba(220,228,255,.45);
+  --card: rgba(255,255,255,.05);
+  --edge: rgba(255,255,255,.09);
+  --green: #50c880;
+  --red: #e05555;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body {
+  width:100%; height:100%; overflow:hidden; position:fixed;
+  background:var(--ink); color:var(--pale);
+  font-family:'DM Sans', sans-serif;
+}
+
+/* ── BACKGROUND ─────────────────────────────────────────── */
+#sky {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 10%, rgba(18,34,68,.9) 0%, transparent 100%),
+    radial-gradient(ellipse 60% 60% at 85% 90%, rgba(10,18,38,.95) 0%, transparent 100%),
+    var(--ink);
+}
+#sky::before {
+  content:''; position:absolute; inset:0;
+  background-image:
+    radial-gradient(1.2px 1.2px at  8% 12%, rgba(255,255,255,.6) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 23% 45%, rgba(255,255,255,.3) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 52%  8%, rgba(201,168,76,.4)  0%, transparent 100%),
+    radial-gradient(1px   1px   at 71% 67%, rgba(255,255,255,.35) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 38% 82%, rgba(255,255,255,.4) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 88% 28%, rgba(255,255,255,.5) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 64% 35%, rgba(201,168,76,.25) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 15% 75%, rgba(255,255,255,.3) 0%, transparent 100%);
+}
+
+/* ── LAYOUT ──────────────────────────────────────────────── */
+#app {
+  position:relative; z-index:1;
+  width:100%; height:100%;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+
+/* ── HEADER ──────────────────────────────────────────────── */
+#hdr {
+  flex-shrink:0;
+  padding: env(safe-area-inset-top,44px) 20px 14px;
+  display:flex; align-items:flex-end; justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.logo { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:5px; line-height:1; }
+.logo-tag { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-top:3px; }
+.hd-r { text-align:right; }
+.hd-r p { font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); letter-spacing:.5px; }
+.hd-r span { font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:2px; color:var(--glo); }
+
+/* ── GPS SCAN BAR ────────────────────────────────────────── */
+#scanbar { flex-shrink:0; height:2px; background:rgba(255,255,255,.05); position:relative; overflow:hidden; }
+#scanfill { position:absolute; left:0; top:0; height:100%; background:linear-gradient(90deg,rgba(201,168,76,.3),var(--gold)); width:0%; transition:width 1s linear; }
+
+/* ── SCROLL AREA ────────────────────────────────────────── */
+#scr { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding:14px 14px 40px; }
+#scr::-webkit-scrollbar { display:none; }
+
+/* ── START BUTTON ───────────────────────────────────────── */
+#startWrap { display:flex; justify-content:center; padding:10px 0 16px; }
+#startBtn {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 32px; border-radius:50px; cursor:pointer;
+  border:1.5px solid rgba(201,168,76,.45);
+  background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.03));
+  transition:all .25s; -webkit-appearance:none;
+}
+#startBtn.on {
+  border-color:rgba(80,200,128,.55);
+  background:linear-gradient(135deg,rgba(80,200,128,.14),rgba(80,200,128,.03));
+}
+#startBtn:active { transform:scale(.96); }
+.sb-icon { font-size:24px; }
+.sb-text { display:flex; flex-direction:column; }
+.sb-main { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:var(--glo); }
+#startBtn.on .sb-main { color:#6ecf9c; }
+.sb-sub { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--gdim); text-transform:uppercase; }
+#startBtn.on .sb-sub { color:rgba(80,200,128,.55); }
+
+/* ── STATUS BAR ─────────────────────────────────────────── */
+#status {
+  display:flex; align-items:center; gap:8px;
+  padding:8px 13px; margin-bottom:14px;
+  background:var(--card); border:1px solid var(--edge); border-radius:10px;
+  font-family:'DM Mono',monospace; font-size:10px;
+}
+.dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.dot.idle  { background:rgba(220,228,255,.3); }
+.dot.gps   { background:var(--gold); animation:blink 1.2s ease-in-out infinite; }
+.dot.live  { background:var(--green); animation:blink 2.5s ease-in-out infinite; }
+.dot.err   { background:var(--red); }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.25;} }
+#stmsg { flex:1; color:var(--dim); }
+#sttmr { color:var(--gdim); font-size:9px; }
+
+/* ── THE TWO LANDMARK CARDS ─────────────────────────────── */
+#cards { display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
+
+.card {
+  border-radius:16px; overflow:hidden;
+  background:var(--card); border:1px solid var(--edge);
+  transition:border-color .3s, box-shadow .3s;
+  cursor:pointer;
+}
+.card.rank-1 {
+  border-color:rgba(201,168,76,.4);
+  box-shadow:0 0 0 1px rgba(201,168,76,.1), 0 8px 32px rgba(0,0,0,.4);
+}
+.card.rank-2 { border-color:rgba(201,168,76,.18); }
+
+.card-img { width:100%; height:110px; object-fit:cover; display:block; }
+.card-emoji {
+  width:100%; height:110px; display:none; align-items:center; justify-content:center;
+  font-size:52px;
+  background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(10,18,38,.85));
+}
+.card-body { padding:13px 15px 14px; }
+.card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:8px; }
+.card-meta { flex:1; }
+.card-rank {
+  font-family:'DM Mono',monospace; font-size:7px; letter-spacing:3px;
+  color:var(--gold); text-transform:uppercase; margin-bottom:1px;
+}
+.card-name {
+  font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:1px;
+  color:var(--pale); line-height:1.05;
+}
+.card-county { font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); margin-top:2px; }
+.card-dist-wrap { text-align:right; flex-shrink:0; }
+.card-dist { font-family:'Bebas Neue',sans-serif; font-size:26px; letter-spacing:1px; color:var(--glo); line-height:1; }
+.card-unit { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:2px; color:var(--gdim); display:block; }
+.card-dir  { font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); margin-top:1px; }
+.divider { width:100%; height:1px; background:rgba(255,255,255,.06); margin-bottom:9px; }
+.card-fact { font-size:13px; line-height:1.68; font-weight:300; color:rgba(220,228,255,.85); }
+.card-fact em { color:var(--glo); font-style:normal; font-weight:500; }
+.card-placeholder {
+  height:110px; display:flex; align-items:center; justify-content:center;
+  font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); letter-spacing:1px;
+  font-style:italic;
+}
+
+/* ── DIVIDER ─────────────────────────────────────────────── */
+.sep { width:100%; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,.18),transparent); margin:6px 0 12px; }
+
+/* ── NEARBY MINI LIST ───────────────────────────────────── */
+#listLabel { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:3px; color:var(--dim); text-transform:uppercase; margin-bottom:8px; }
+#list { display:flex; flex-direction:column; gap:6px; }
+.litem {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 12px; border-radius:10px;
+  background:var(--card); border:1px solid var(--edge);
+  cursor:pointer; transition:border-color .2s;
+}
+.litem:active { border-color:rgba(201,168,76,.3); }
+.litem-em { font-size:18px; flex-shrink:0; width:30px; text-align:center; }
+.litem-info { flex:1; min-width:0; }
+.litem-name { font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.litem-sub  { font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); margin-top:1px; }
+.litem-dist { font-family:'DM Mono',monospace; font-size:11px; color:var(--glo); flex-shrink:0; }
+
+/* ── GPS FOOTER ─────────────────────────────────────────── */
+#gpsBar {
+  padding:8px 12px; background:var(--card); border:1px solid var(--edge);
+  border-radius:10px; margin-top:12px;
+  font-family:'DM Mono',monospace; font-size:9px; color:var(--dim);
+  display:flex; gap:12px; flex-wrap:wrap;
+}
+
+/* ── DETAIL OVERLAY ─────────────────────────────────────── */
+#overlay {
+  position:fixed; inset:0; z-index:100;
+  background:rgba(8,12,20,.92);
+  display:none; align-items:flex-end; justify-content:stretch;
+  padding:12px;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+#overlay.open { display:flex; }
+#ocard {
+  width:100%; border-radius:20px; overflow:hidden;
+  background:linear-gradient(160deg,#0f1829,#080c14);
+  border:1px solid rgba(201,168,76,.4);
+  box-shadow:0 -8px 60px rgba(0,0,0,.7);
+}
+#oImg  { width:100%; height:160px; object-fit:cover; display:block; }
+#oEmoji {
+  width:100%; height:160px; display:none; align-items:center; justify-content:center;
+  font-size:70px; background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(10,18,38,.9));
+}
+#obody { padding:16px 18px 20px; }
+#otop { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; gap:10px; }
+#ometa { flex:1; }
+#otag  { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:3px; color:var(--gold); text-transform:uppercase; margin-bottom:2px; }
+#oname { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; line-height:1; }
+#odist { font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); margin-top:4px; }
+#odist b { color:var(--glo); font-weight:400; }
+#oclose {
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+  color:var(--dim); font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; -webkit-appearance:none;
+}
+#ofact { font-size:14px; line-height:1.7; font-weight:300; }
+#ofact em { color:var(--glo); font-style:normal; font-weight:500; }
+</style>
 </head>
 <body>
-<div id="bg"></div>
-<div id="pop">
-  <div class="pc">
-    <img id="pp" src="" alt="" onerror="this.style.display='none';document.getElementById('pe').style.display='flex'">
-    <div id="pe"></div>
-    <div class="pb">
-      <div class="pt">
-        <div class="ptl">
-          <div class="ptag" id="ptag">Nearby</div>
-          <div class="pnm" id="pnm">—</div>
-          <div class="pds" id="pds">—</div>
+
+<div id="sky"></div>
+
+<!-- Detail Overlay -->
+<div id="overlay" onclick="closeOverlay(event)">
+  <div id="ocard">
+    <img id="oImg" src="" alt=""
+      onerror="this.style.display='none';document.getElementById('oEmoji').style.display='flex'">
+    <div id="oEmoji"></div>
+    <div id="obody">
+      <div id="otop">
+        <div id="ometa">
+          <div id="otag"></div>
+          <div id="oname"></div>
+          <div id="odist"></div>
         </div>
-        <button id="px" onclick="dismiss()">✕</button>
+        <button id="oclose" onclick="closeOverlay()">✕</button>
       </div>
-      <div class="pf" id="pf">—</div>
-      <div class="pg"><div id="pgb"></div></div>
+      <div id="ofact"></div>
     </div>
   </div>
 </div>
+
 <div id="app">
-  <header>
-    <div><div class="logo">RoadGuide</div><div class="logo-sub">California Explorer</div></div>
-    <div class="hst">
-      <p>LANDMARKS <span id="tc">—</span></p>
-      <p>DISCOVERED <span id="sc">0</span></p>
+  <!-- Header -->
+  <div id="hdr">
+    <div>
+      <div class="logo">RoadGuide</div>
+      <div class="logo-tag">California</div>
     </div>
-  </header>
-  <div id="bar"><div id="bf"></div></div>
+    <div class="hd-r">
+      <p>LANDMARKS <span id="tc">—</span></p>
+      <p>DISCOVERED <span id="dc">0</span></p>
+    </div>
+  </div>
+  <div id="scanbar"><div id="scanfill"></div></div>
+
+  <!-- Scroll body -->
   <div id="scr">
-    <div class="dw">
-      <button id="btn" onclick="toggle()">
-        <div class="bi">🚗</div>
-        <div class="bt"><div class="bl" id="bl">Start Driving</div><div class="bs" id="bs">Tap to enable proximity alerts</div></div>
+
+    <!-- Start button -->
+    <div id="startWrap">
+      <button id="startBtn" onclick="toggle()">
+        <div class="sb-icon">🚗</div>
+        <div class="sb-text">
+          <div class="sb-main" id="btnLabel">Start Driving</div>
+          <div class="sb-sub"  id="btnSub">Tap to see nearest landmarks</div>
+        </div>
       </button>
     </div>
-    <div class="st"><div class="dot i" id="dot"></div><div class="sm" id="sm">Tap Start Driving to begin</div><div id="tmr"></div></div>
-    <div class="sl" id="sl">Nearby landmarks will appear here</div>
-    <div id="lst"></div>
-    <div class="hdiv"></div>
-    <div id="gps"><span id="gla">LAT —</span><span id="glo">LON —</span><span id="gsp">SPD —</span></div>
-  </div>
-</div>
+
+    <!-- Status -->
+    <div id="status">
+      <div class="dot idle" id="dot"></div>
+      <div id="stmsg">Tap Start Driving to begin</div>
+      <div id="sttmr"></div>
+    </div>
+
+    <!-- THE 2 MAIN CARDS -->
+    <div id="cards">
+      <div class="card" id="card0" onclick="cardClick(0)">
+        <div class="card-placeholder" id="ph0">Nearest landmark will appear here</div>
+      </div>
+      <div class="card" id="card1" onclick="cardClick(1)">
+        <div class="card-placeholder" id="ph1">2nd nearest landmark will appear here</div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <!-- Mini list of next 10 -->
+    <div id="listLabel">Next Nearest</div>
+    <div id="list"></div>
+
+    <div id="gpsBar">
+      <span id="gLat">LAT —</span>
+      <span id="gLon">LON —</span>
+      <span id="gSpd">SPD —</span>
+      <span id="gAcc">ACC —</span>
+    </div>
+
+  </div><!-- /scr -->
+</div><!-- /app -->
+
+<!-- Data files -->
 <script src="landmarks.js"></script>
 <script src="landmarks_south.js"></script>
 <script src="landmarks_topup.js"></script>
+
 <script>
-const ALL=[...LANDMARKS,...LANDMARKS_SOUTH,...LANDMARKS_TOPUP];
-let on=false,wid=null,stimer=null,secs=0,lat=null,lon=null;
-let seen=new Set(),queue=[],showing=false,ptimer=null;
-const SECS=15,RAD=5.0;
-function d(a,b,c,e){const R=3958.8,dL=(c-a)*Math.PI/180,dl=(e-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
-function b(a,b,c,e){const dl=(e-b)*Math.PI/180,y=Math.sin(dl)*Math.cos(c*Math.PI/180),x=Math.cos(a*Math.PI/180)*Math.sin(c*Math.PI/180)-Math.sin(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.cos(dl);return(Math.atan2(y,x)*180/Math.PI+360)%360;}
-function cd(v){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(v/22.5)%16];}
-function st(cls,msg){document.getElementById('dot').className='dot '+cls;document.getElementById('sm').textContent=msg;}
-function toggle(){on?stop():go();}
-function go(){
-  if(!navigator.geolocation){st('e','GPS not available');return;}
-  on=true;document.getElementById('btn').classList.add('on');
-  document.getElementById('bl').textContent='Driving';
-  document.getElementById('bs').textContent='Tap to stop';
-  st('s','Acquiring GPS…');
-  wid=navigator.geolocation.watchPosition(pos,err,{enableHighAccuracy:true,timeout:12000,maximumAge:5000});
+/* ═══════════════════════════════════════════════════════════
+   ROADGUIDE — core logic
+   ═════════════════════════════════════════════════════════*/
+
+// ── 1. MERGE + VALIDATE ──────────────────────────────────
+var ALL = [];
+(function() {
+  function load(arr, label) {
+    if (!Array.isArray(arr)) { console.error(label + ' not loaded!'); return; }
+    var before = ALL.length;
+    for (var i = 0; i < arr.length; i++) {
+      var lm = arr[i];
+      if (lm && lm.name && typeof lm.lat === 'number' && typeof lm.lon === 'number') {
+        ALL.push(lm);
+      }
+    }
+    console.log(label + ': added ' + (ALL.length - before) + ' landmarks');
+  }
+  load(typeof LANDMARKS       !== 'undefined' ? LANDMARKS       : null, 'LANDMARKS');
+  load(typeof LANDMARKS_SOUTH !== 'undefined' ? LANDMARKS_SOUTH : null, 'LANDMARKS_SOUTH');
+  load(typeof LANDMARKS_TOPUP !== 'undefined' ? LANDMARKS_TOPUP : null, 'LANDMARKS_TOPUP');
+  console.log('TOTAL landmarks:', ALL.length);
+})();
+
+document.getElementById('tc').textContent = ALL.length;
+
+// ── 2. STATE ─────────────────────────────────────────────
+var active = false;
+var watchId = null;
+var scanTimer = null;
+var secsLeft = 0;
+var SCAN_INTERVAL = 15;
+
+var curLat = null, curLon = null;
+var discovered = new Set();
+var topTwo = [null, null];   // currently displayed top-2 landmarks
+
+// ── 3. DISTANCE + BEARING ────────────────────────────────
+function haversine(lat1, lon1, lat2, lon2) {
+  var R = 3958.8;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLon = (lon2 - lon1) * Math.PI / 180;
+  var a = Math.sin(dLat/2) * Math.sin(dLat/2)
+        + Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180)
+        * Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function stop(){
-  on=false;if(wid!==null){navigator.geolocation.clearWatch(wid);wid=null;}
-  clearInterval(stimer);document.getElementById('btn').classList.remove('on');
-  document.getElementById('bl').textContent='Start Driving';
-  document.getElementById('bs').textContent='Tap to enable proximity alerts';
-  document.getElementById('bf').style.width='100%';
-  document.getElementById('tmr').textContent='';st('i','Stopped');
+
+function bearing(lat1, lon1, lat2, lon2) {
+  var dLon = (lon2 - lon1) * Math.PI / 180;
+  var y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+  var x = Math.cos(lat1 * Math.PI/180) * Math.sin(lat2 * Math.PI/180)
+        - Math.sin(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) * Math.cos(dLon);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 }
-function err(e){const m={1:'Location permission denied.',2:'Position unavailable.',3:'GPS timed out.'};st('e',m[e.code]||'GPS error.');}
-function pos(p){
-  lat=p.coords.latitude;lon=p.coords.longitude;
-  const spd=p.coords.speed;
-  document.getElementById('gla').textContent='LAT '+lat.toFixed(4);
-  document.getElementById('glo').textContent='LON '+lon.toFixed(4);
-  document.getElementById('gsp').textContent=spd!==null?'SPD '+Math.round(spd*2.237)+' mph':'SPD —';
-  st('a','Driving — scanning for landmarks');
-  refresh();scan();tick();
+
+function cardinalDir(deg) {
+  var dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
 }
-function tick(){
-  clearInterval(stimer);secs=SECS;bar();
-  stimer=setInterval(()=>{secs--;bar();if(secs<=0){secs=SECS;if(lat)scan();}},1000);
+
+// ── 4. GPS TOGGLE ─────────────────────────────────────────
+function toggle() {
+  if (active) stopDriving(); else startDriving();
 }
-function bar(){document.getElementById('bf').style.width=(secs/SECS*100)+'%';document.getElementById('tmr').textContent='scan in '+secs+'s';}
-function scan(){
-  if(!lat)return;
-  ALL.map(lm=>({...lm,dist:d(lat,lon,lm.lat,lm.lon)}))
-    .filter(lm=>lm.dist<=RAD&&!seen.has(lm.name))
-    .sort((a,z)=>a.dist-z.dist)
-    .forEach(lm=>{seen.add(lm.name);queue.push(lm);});
-  document.getElementById('sc').textContent=seen.size;
-  if(!showing&&queue.length>0)showNext();
+
+function startDriving() {
+  if (!navigator.geolocation) {
+    setStatus('err', 'GPS not available in this browser');
+    return;
+  }
+  active = true;
+  document.getElementById('startBtn').classList.add('on');
+  document.getElementById('btnLabel').textContent = 'Driving';
+  document.getElementById('btnSub').textContent   = 'Tap to stop';
+  setStatus('gps', 'Acquiring GPS signal…');
+
+  watchId = navigator.geolocation.watchPosition(
+    onPosition,
+    onGpsError,
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 3000 }
+  );
 }
-function showNext(){
-  if(!queue.length){showing=false;return;}
-  showing=true;const lm=queue.shift();
-  const ph=document.getElementById('pp'),pe=document.getElementById('pe');
-  if(lm.photo){ph.style.display='block';pe.style.display='none';ph.src=lm.photo;ph.onerror=()=>{ph.style.display='none';pe.style.display='flex';};}
-  else{ph.style.display='none';pe.style.display='flex';pe.textContent=lm.emoji;}
-  document.getElementById('ptag').textContent=lm.county+' County · '+lm.cat;
-  document.getElementById('pnm').textContent=lm.name;
-  const dist=lm.dist!==undefined?lm.dist.toFixed(1):'?';
-  const dir=lat?cd(b(lat,lon,lm.lat,lm.lon)):'';
-  document.getElementById('pds').innerHTML='<b>'+dist+' miles</b> · '+dir;
-  document.getElementById('pf').innerHTML=lm.fact;
-  const pg=document.getElementById('pgb');pg.style.transition='none';pg.style.width='100%';
-  setTimeout(()=>{pg.style.transition='width 12s linear';pg.style.width='0%';},50);
-  document.getElementById('pop').classList.add('show');
-  clearTimeout(ptimer);ptimer=setTimeout(dismiss,12000);
+
+function stopDriving() {
+  active = false;
+  if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  clearInterval(scanTimer); scanTimer = null;
+  document.getElementById('startBtn').classList.remove('on');
+  document.getElementById('btnLabel').textContent = 'Start Driving';
+  document.getElementById('btnSub').textContent   = 'Tap to see nearest landmarks';
+  document.getElementById('scanfill').style.width = '0%';
+  document.getElementById('sttmr').textContent    = '';
+  setStatus('idle', 'Stopped');
 }
-function dismiss(){
-  clearTimeout(ptimer);document.getElementById('pop').classList.remove('show');
-  setTimeout(()=>{if(queue.length>0)showNext();else showing=false;},600);
+
+function onGpsError(err) {
+  var msgs = {
+    1: 'Location permission denied — please allow in Settings.',
+    2: 'Position unavailable. Try again.',
+    3: 'GPS timed out. Move to open sky.'
+  };
+  setStatus('err', msgs[err.code] || 'GPS error (' + err.code + ')');
 }
-function detail(lm){
-  const dist=lat?d(lat,lon,lm.lat,lm.lon).toFixed(1):'?';
-  const dir=lat?cd(b(lat,lon,lm.lat,lm.lon)):'';
-  const ph=document.getElementById('pp'),pe=document.getElementById('pe');
-  if(lm.photo){ph.style.display='block';pe.style.display='none';ph.src=lm.photo;ph.onerror=()=>{ph.style.display='none';pe.style.display='flex';};}
-  else{ph.style.display='none';pe.style.display='flex';pe.textContent=lm.emoji;}
-  document.getElementById('ptag').textContent=lm.county+' County · '+lm.cat;
-  document.getElementById('pnm').textContent=lm.name;
-  document.getElementById('pds').innerHTML='<b>'+dist+' miles</b> · '+dir;
-  document.getElementById('pf').innerHTML=lm.fact;
-  const pg=document.getElementById('pgb');pg.style.transition='none';pg.style.width='100%';
-  document.getElementById('pop').classList.add('show');
-  clearTimeout(ptimer);ptimer=setTimeout(dismiss,20000);
+
+// ── 5. POSITION HANDLER ───────────────────────────────────
+function onPosition(pos) {
+  curLat = pos.coords.latitude;
+  curLon = pos.coords.longitude;
+  var spd = pos.coords.speed;
+  var acc = pos.coords.accuracy;
+
+  document.getElementById('gLat').textContent = 'LAT ' + curLat.toFixed(5);
+  document.getElementById('gLon').textContent = 'LON ' + curLon.toFixed(5);
+  document.getElementById('gSpd').textContent = (spd !== null && spd !== undefined)
+    ? 'SPD ' + Math.round(spd * 2.237) + ' mph'
+    : 'SPD —';
+  document.getElementById('gAcc').textContent = acc ? 'ACC ±' + Math.round(acc) + 'm' : 'ACC —';
+
+  setStatus('live', 'GPS active — updating nearest landmarks');
+  updateDisplay();
+  startCountdown();
 }
-function refresh(){
-  if(!lat)return;
-  const sorted=ALL.map(lm=>({...lm,dist:d(lat,lon,lm.lat,lm.lon),brg:b(lat,lon,lm.lat,lm.lon)})).sort((a,z)=>a.dist-z.dist).slice(0,25);
-  const el=document.getElementById('lst');el.innerHTML='';
-  document.getElementById('sl').textContent='Nearest Landmarks';
-  sorted.forEach(lm=>{
-    const row=document.createElement('div');
-    row.className='li'+(seen.has(lm.name)?' seen':'');
-    const th=lm.photo?`<img class="lt" src="${lm.photo}" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'" alt=""><div class="le" style="display:none">${lm.emoji}</div>`:`<div class="le">${lm.emoji}</div>`;
-    row.innerHTML=`${th}<div class="li-i"><div class="li-n">${lm.name}</div><div class="li-c">${lm.cat}</div><div class="li-co">${lm.county}${seen.has(lm.name)?' · ✓':''}</div></div><div class="li-r"><div class="li-d">${lm.dist.toFixed(1)} mi</div><div class="li-b">${cd(lm.brg)}</div></div>`;
-    row.onclick=()=>detail(lm);el.appendChild(row);
+
+// ── 6. COUNTDOWN + PERIODIC REFRESH ──────────────────────
+function startCountdown() {
+  if (scanTimer !== null) return; // already running
+  secsLeft = SCAN_INTERVAL;
+  updateScanBar();
+  scanTimer = setInterval(function() {
+    secsLeft--;
+    updateScanBar();
+    if (secsLeft <= 0) {
+      secsLeft = SCAN_INTERVAL;
+      if (curLat !== null) updateDisplay();
+    }
+  }, 1000);
+}
+
+function updateScanBar() {
+  document.getElementById('scanfill').style.width = (secsLeft / SCAN_INTERVAL * 100) + '%';
+  document.getElementById('sttmr').textContent    = secsLeft + 's';
+}
+
+// ── 7. CORE: COMPUTE + RENDER TOP-2 ──────────────────────
+function updateDisplay() {
+  if (curLat === null || ALL.length === 0) return;
+
+  // Sort all 719 landmarks by distance
+  var sorted = ALL.map(function(lm) {
+    return {
+      lm:   lm,
+      dist: haversine(curLat, curLon, lm.lat, lm.lon),
+      brg:  bearing(curLat, curLon, lm.lat, lm.lon)
+    };
+  }).sort(function(a, b) { return a.dist - b.dist; });
+
+  // Mark discoveries (first time within 5 miles)
+  sorted.slice(0, 20).forEach(function(item) {
+    if (item.dist <= 5) discovered.add(item.lm.name);
+  });
+  document.getElementById('dc').textContent = discovered.size;
+
+  // Render top-2 cards
+  topTwo[0] = sorted[0] || null;
+  topTwo[1] = sorted[1] || null;
+  renderCard(0, topTwo[0]);
+  renderCard(1, topTwo[1]);
+
+  // Render mini list (3–12)
+  renderList(sorted.slice(2, 12));
+}
+
+// ── 8. RENDER A MAIN CARD ─────────────────────────────────
+function renderCard(idx, item) {
+  var card = document.getElementById('card' + idx);
+  if (!item) {
+    card.innerHTML = '<div class="card-placeholder">Searching…</div>';
+    card.className = 'card';
+    return;
+  }
+
+  var lm   = item.lm;
+  var dist = item.dist.toFixed(1);
+  var dir  = cardinalDir(item.brg);
+  var rankLabel = idx === 0 ? '⬤ NEAREST' : '◎ 2ND NEAREST';
+
+  card.className = 'card rank-' + (idx + 1);
+
+  // Image or emoji header
+  var imgHtml;
+  if (lm.photo) {
+    imgHtml = '<img class="card-img" src="' + lm.photo + '" alt="" loading="lazy" '
+            + 'onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+            + '<div class="card-emoji">' + lm.emoji + '</div>';
+  } else {
+    imgHtml = '<div class="card-emoji" style="display:flex">' + lm.emoji + '</div>';
+  }
+
+  card.innerHTML = imgHtml
+    + '<div class="card-body">'
+    +   '<div class="card-top">'
+    +     '<div class="card-meta">'
+    +       '<div class="card-rank">' + rankLabel + '</div>'
+    +       '<div class="card-name">' + lm.name + '</div>'
+    +       '<div class="card-county">' + lm.county + ' County · ' + lm.cat + '</div>'
+    +     '</div>'
+    +     '<div class="card-dist-wrap">'
+    +       '<div class="card-dist">' + dist + '</div>'
+    +       '<span class="card-unit">MILES</span>'
+    +       '<div class="card-dir">' + dir + '</div>'
+    +     '</div>'
+    +   '</div>'
+    +   '<div class="divider"></div>'
+    +   '<div class="card-fact">' + lm.fact + '</div>'
+    + '</div>';
+}
+
+// ── 9. RENDER MINI LIST ───────────────────────────────────
+function renderList(items) {
+  var el = document.getElementById('list');
+  el.innerHTML = '';
+  items.forEach(function(item) {
+    var lm   = item.lm;
+    var dist = item.dist.toFixed(1);
+    var dir  = cardinalDir(item.brg);
+    var row  = document.createElement('div');
+    row.className = 'litem';
+    row.innerHTML = '<div class="litem-em">' + lm.emoji + '</div>'
+      + '<div class="litem-info">'
+      +   '<div class="litem-name">' + lm.name + '</div>'
+      +   '<div class="litem-sub">' + lm.county + ' · ' + lm.cat + '</div>'
+      + '</div>'
+      + '<div class="litem-dist">' + dist + ' mi</div>';
+    row.addEventListener('click', (function(i) {
+      return function() { openOverlay(i); };
+    })(item));
+    el.appendChild(row);
   });
 }
-document.getElementById('tc').textContent=ALL.length;
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+// ── 10. CARD CLICK → DETAIL OVERLAY ──────────────────────
+function cardClick(idx) {
+  if (topTwo[idx]) openOverlay(topTwo[idx]);
+}
+
+function openOverlay(item) {
+  var lm   = item.lm;
+  var dist = curLat !== null ? haversine(curLat, curLon, lm.lat, lm.lon).toFixed(1) : '?';
+  var dir  = curLat !== null ? cardinalDir(bearing(curLat, curLon, lm.lat, lm.lon)) : '';
+
+  var oi = document.getElementById('oImg');
+  var oe = document.getElementById('oEmoji');
+  if (lm.photo) {
+    oi.style.display = 'block';
+    oe.style.display = 'none';
+    oi.src = lm.photo;
+    oi.onerror = function() {
+      oi.style.display = 'none';
+      oe.style.display = 'flex';
+    };
+  } else {
+    oi.style.display = 'none';
+    oe.style.display = 'flex';
+    oe.textContent = lm.emoji;
+  }
+
+  document.getElementById('otag').textContent   = lm.county + ' County · ' + lm.cat;
+  document.getElementById('oname').textContent  = lm.name;
+  document.getElementById('odist').innerHTML    = '<b>' + dist + ' miles</b> · ' + dir;
+  document.getElementById('ofact').innerHTML    = lm.fact;
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay(event) {
+  if (!event || event.target === document.getElementById('overlay') || event.currentTarget === document.getElementById('oclose')) {
+    document.getElementById('overlay').classList.remove('open');
+  }
+}
+
+// ── 11. STATUS HELPER ─────────────────────────────────────
+function setStatus(cls, msg) {
+  document.getElementById('dot').className  = 'dot ' + cls;
+  document.getElementById('stmsg').textContent = msg;
+}
+
+// ── 12. SERVICE WORKER ────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(function(reg) {
+    console.log('SW registered, scope:', reg.scope);
+  }).catch(function(err) {
+    console.log('SW failed:', err);
+  });
+}
 </script>
 </body>
 </html>
