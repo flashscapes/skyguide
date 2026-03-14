@@ -560,6 +560,81 @@ function renderList() {
 // Priority: Google UK English Male > Google US Male > Daniel (Apple)
 //           > any male > first available
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// ELEVENLABS CONFIG
+// Get a free API key at elevenlabs.io (10,000 chars/month free)
+// Paste your key below between the quotes.
+// Leave blank ('') to use browser voice only.
+// ─────────────────────────────────────────────────────────
+var XI_KEY    = '';          // ← paste your ElevenLabs API key here
+var XI_VOICE  = 'nPczCjzI2devNBz1zQrb';  // Brian — deep, American, narration
+var XI_MODEL  = 'eleven_turbo_v2_5';      // fast, low-latency, English
+var xi_audio  = null;        // current Audio object
+
+function xiSpeak(text, onStart, onEnd) {
+  if (!XI_KEY) { return false; }  // no key — fall through to browser voice
+  // Stop any previous ElevenLabs audio
+  if (xi_audio) { xi_audio.pause(); xi_audio = null; }
+
+  var url = 'https://api.elevenlabs.io/v1/text-to-speech/' + XI_VOICE + '/stream';
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'xi-api-key': XI_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'audio/mpeg'
+    },
+    body: JSON.stringify({
+      text: text,
+      model_id: XI_MODEL,
+      voice_settings: { stability: 0.55, similarity_boost: 0.75, style: 0.0, use_speaker_boost: true }
+    })
+  })
+  .then(function(r) {
+    if (!r.ok) throw new Error('ElevenLabs ' + r.status);
+    return r.blob();
+  })
+  .then(function(blob) {
+    var audioUrl = URL.createObjectURL(blob);
+    xi_audio = new Audio(audioUrl);
+    xi_audio.onplay  = onStart;
+    xi_audio.onended = function() { URL.revokeObjectURL(audioUrl); onEnd(); };
+    xi_audio.onerror = function() { onEnd(); };
+    xi_audio.play();
+  })
+  .catch(function(err) {
+    console.warn('ElevenLabs error, falling back to browser voice:', err);
+    browserSpeak(text, onStart, onEnd);
+  });
+  return true;  // API call initiated
+}
+
+function xiStop() {
+  if (xi_audio) { xi_audio.pause(); xi_audio = null; }
+  xiStop();
+}
+
+function browserSpeak(text, onStart, onEnd) {
+  if (!window.speechSynthesis) { onEnd(); return; }
+  var utt  = new SpeechSynthesisUtterance(text);
+  utt.lang = 'en-US';   // Let the OS pick its natural US voice — works great on iOS
+  utt.rate = 0.92;
+  // Only manually assign a voice on non-iOS (iOS ignores voice assignment anyway
+  // and sounds better with its own system default via lang alone)
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (!isIOS) {
+    var v = getVoice(); if (v) utt.voice = v;
+  }
+  utt.onstart = onStart;
+  utt.onend = utt.onerror = onEnd;
+  window.speechSynthesis.speak(utt);
+}
+
+function isSpeaking() {
+  return (xi_audio && !xi_audio.paused) ||
+         (window.speechSynthesis && window.speechSynthesis.speaking);
+}
+
 var selectedVoice = null;
 
 function populateVoices() {
@@ -568,32 +643,52 @@ function populateVoices() {
   var sel = document.getElementById('voiceSelect');
   sel.innerHTML = '';
 
-  // Score each voice — higher = more preferred
-  function scoreVoice(v) {
-    var n = v.name.toLowerCase();
-    var s = 0;
-    // Strongly prefer natural-sounding named voices
-    if (n === 'google us english' || n.includes('google us english')) s += 110; // Windows Chrome exact name
-    if (n === 'google us english male' || n.includes('google us english male')) s += 105;
-    if (n.includes('google uk english male'))  s += 80;
-    if (n.includes('google uk english'))       s += 70;
-    if (n === 'daniel')                        s += 90;  // Apple UK male - very natural
-    if (n === 'aaron')                         s += 75;  // Apple US male
-    if (n === 'fred')                          s += 40;  // Apple classic
-    if (n.includes('google') && n.includes('male'))  s += 60;
-    if (n.includes('google'))                  s += 30;
-    // Penalise obviously robotic voices
-    if (n.includes('compact'))  s -= 20;
-    if (n.includes('espeak'))   s -= 40;
-    // Prefer English
-    if (v.lang && v.lang.toLowerCase().startsWith('en')) s += 15;
-    // Prefer male indicators
-    if (n.includes('male') || n === 'daniel' || n === 'aaron' || n === 'fred' || n === 'alex') s += 10;
-    return s;
+  // ── Voice priority list ──────────────────────────────────────────────────
+  // iOS best males (must be downloaded in Settings > Accessibility > Spoken Content > Voices):
+  //   Evan (Enhanced), Nathan (Enhanced) — warm, natural American male
+  // Windows Chrome: "Google US English" (lang en-US)
+  // macOS/other Chrome: "Google US English Male" or similar
+  // Falls back to any en-US voice rather than a non-US voice.
+  // ─────────────────────────────────────────────────────────────────────────
+  function pickBestVoice(vlist) {
+    var n, v;
+    // Tier 1 — iOS premium/enhanced male US voices (must be pre-downloaded by user)
+    var iosMalePremium = ['evan', 'nathan', 'nolan', 'aaron'];
+    for (var i = 0; i < iosMalePremium.length; i++) {
+      v = vlist.find(function(v){
+        n = v.name.toLowerCase();
+        return n === iosMalePremium[i] && v.lang === 'en-US';
+      });
+      if (v) return v;
+    }
+    // Tier 2 — Google US English (Windows/Android Chrome exact name)
+    v = vlist.find(function(v){ return v.name === 'Google US English'; });
+    if (v) return v;
+    // Tier 3 — Any Google voice with en-US lang
+    v = vlist.find(function(v){
+      return v.name.toLowerCase().indexOf('google') !== -1 && v.lang === 'en-US';
+    });
+    if (v) return v;
+    // Tier 4 — Microsoft natural US (Edge/Windows)
+    v = vlist.find(function(v){
+      return v.name.toLowerCase().indexOf('microsoft') !== -1 && v.lang === 'en-US'
+             && v.name.toLowerCase().indexOf('online') !== -1;
+    });
+    if (v) return v;
+    // Tier 5 — Any en-US voice (avoid non-US at all costs)
+    v = vlist.find(function(v){ return v.lang === 'en-US'; });
+    if (v) return v;
+    // Tier 6 — Any English voice
+    v = vlist.find(function(v){ return v.lang && v.lang.toLowerCase().indexOf('en') === 0; });
+    if (v) return v;
+    return vlist[0] || null;
   }
 
+  // Build dropdown — en-US voices first, then everything else
   var sorted_voices = voices.slice().sort(function(a, b) {
-    return scoreVoice(b) - scoreVoice(a);
+    var aScore = (a.lang === 'en-US') ? 1 : 0;
+    var bScore = (b.lang === 'en-US') ? 1 : 0;
+    return bScore - aScore;
   });
 
   sorted_voices.forEach(function(v) {
@@ -603,14 +698,12 @@ function populateVoices() {
     sel.appendChild(opt);
   });
 
-  // Apply saved preference or default to top-scored voice
+  // Honour saved preference ONLY if it is en-US — never fall back to a UK/foreign voice
   var saved = localStorage.getItem('rg_voice');
-  if (saved && sorted_voices.find(function(v){ return v.name === saved; })) {
-    sel.value = saved;
-  } else {
-    sel.value = sorted_voices[0] ? sorted_voices[0].name : '';
-  }
-  selectedVoice = window.speechSynthesis.getVoices().find(function(v){ return v.name === sel.value; }) || null;
+  var savedVoice = saved ? voices.find(function(v){ return v.name === saved; }) : null;
+  var chosen = (savedVoice && savedVoice.lang === 'en-US') ? savedVoice : pickBestVoice(voices);
+  sel.value = chosen ? chosen.name : '';
+  selectedVoice = chosen || null;
 }
 
 function saveVoice() {
@@ -642,10 +735,9 @@ function topListen() {
   var lbl = document.getElementById('listenLabel');
   var sub = document.getElementById('listenSub');
 
-  if (!window.speechSynthesis) { alert('Speech not supported in this browser.'); return; }
-
-  if (window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel();
+  // Stop if already speaking
+  if (isSpeaking()) {
+    xiStop();
     btn.classList.remove('speaking');
     lbl.textContent = 'LISTEN';
     sub.textContent = 'Tap to hear nearest landmark';
@@ -653,20 +745,22 @@ function topListen() {
   }
 
   var text = lm.name + '. ' + stripTags(lm.fact);
-  var utt  = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.92;
-  var v = getVoice(); if (v) utt.voice = v;
-  utt.onstart = function() {
+
+  var onStart = function() {
     btn.classList.add('speaking');
     lbl.textContent = 'STOP';
     sub.textContent = lm.name.toUpperCase().substring(0, 28);
   };
-  utt.onend = utt.onerror = function() {
+  var onEnd = function() {
     btn.classList.remove('speaking');
     lbl.textContent = 'LISTEN';
     sub.textContent = 'Tap to hear nearest landmark';
   };
-  window.speechSynthesis.speak(utt);
+
+  // Try ElevenLabs first; if no key, fall back to browser
+  if (!xiSpeak(text, onStart, onEnd)) {
+    browserSpeak(text, onStart, onEnd);
+  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -721,7 +815,7 @@ function closeOverlay(e) {
   // Only close if user tapped the dark backdrop (not the card itself)
   if (e && e.target !== document.getElementById('overlay')) return;
   document.getElementById('overlay').classList.remove('open');
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  xiStop();
   document.getElementById('olistenBtn').textContent = '🔊 Listen';
   document.getElementById('olistenBtn').classList.remove('speaking');
   overlayLandmark = null;
@@ -732,30 +826,29 @@ function closeOverlay(e) {
 // ─────────────────────────────────────────────────────────
 function overlayListen() {
   if (!overlayLandmark) return;
-  if (!window.speechSynthesis) { alert('Speech not supported in this browser.'); return; }
-
   var btn = document.getElementById('olistenBtn');
 
-  if (window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel();
+  if (isSpeaking()) {
+    xiStop();
     btn.textContent = '🔊 Listen';
     btn.classList.remove('speaking');
     return;
   }
 
   var text = overlayLandmark.name + '. ' + stripTags(overlayLandmark.fact);
-  var utt  = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.92;
-  var v = getVoice(); if (v) utt.voice = v;
-  utt.onstart = function() {
+
+  var onStart = function() {
     btn.textContent = '⏹ Stop';
     btn.classList.add('speaking');
   };
-  utt.onend = utt.onerror = function() {
+  var onEnd = function() {
     btn.textContent = '🔊 Listen';
     btn.classList.remove('speaking');
   };
-  window.speechSynthesis.speak(utt);
+
+  if (!xiSpeak(text, onStart, onEnd)) {
+    browserSpeak(text, onStart, onEnd);
+  }
 }
 
 // ─────────────────────────────────────────────────────────
