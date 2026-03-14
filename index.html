@@ -611,7 +611,7 @@ function xiSpeak(text, onStart, onEnd) {
 
 function xiStop() {
   if (xi_audio) { xi_audio.pause(); xi_audio = null; }
-  xiStop();
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 function browserSpeak(text, onStart, onEnd) {
@@ -776,10 +776,8 @@ function openOverlay(idx) {
   overlayLandmark = lm;
 
   // Stop any playing speech
-  if (window.speechSynthesis && window.speechSynthesis.speaking) {
-    window.speechSynthesis.cancel();
-    resetTopBtn();
-  }
+  xiStop();
+  resetTopBtn();
 
   // Image (photo first, emoji fallback)
   var oImg   = document.getElementById('oImg');
