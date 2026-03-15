@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080c14">
+<title>Events Test — RoadGuide</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:  #080c14;
+  --gold: #c9a84c;
+  --glo:  #e8c97a;
+  --gdim: rgba(201,168,76,.35);
+  --pale: #eef2ff;
+  --dim:  rgba(220,228,255,.45);
+  --card: rgba(255,255,255,.05);
+  --edge: rgba(255,255,255,.09);
+  --green:#50c880;
+  --red:  #e05555;
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { width:100%; height:100%; background:var(--ink); color:var(--pale); font-family:'DM Sans',sans-serif; overflow:hidden; }
+
+#sky { position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: radial-gradient(ellipse 70% 50% at 15% 10%, rgba(18,34,68,.9) 0%, transparent 100%),
+              radial-gradient(ellipse 60% 60% at 85% 90%, rgba(10,18,38,.95) 0%, transparent 100%),
+              var(--ink);
+}
+#sky::before { content:''; position:absolute; inset:0;
+  background-image:
+    radial-gradient(1.2px 1.2px at 8%  12%, rgba(255,255,255,.6)  0%, transparent 100%),
+    radial-gradient(1px   1px   at 23% 45%, rgba(255,255,255,.3)  0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 52% 8%,  rgba(201,168,76,.4)  0%, transparent 100%),
+    radial-gradient(1px   1px   at 71% 67%, rgba(255,255,255,.35) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 38% 82%, rgba(255,255,255,.4)  0%, transparent 100%),
+    radial-gradient(1px   1px   at 88% 28%, rgba(255,255,255,.5)  0%, transparent 100%);
+}
+
+#app  { position:relative; z-index:1; width:100%; height:100%; display:flex; flex-direction:column; overflow:hidden; }
+
+/* Header */
+#hdr  { flex-shrink:0; padding:env(safe-area-inset-top,44px) 20px 14px; display:flex; align-items:flex-end; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.06); }
+.logo { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:5px; line-height:1; }
+.logo-tag { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:4px; color:var(--gold); text-transform:uppercase; margin-top:3px; }
+.hd-r { text-align:right; }
+.hd-r p { font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); letter-spacing:.5px; }
+.hd-r span { font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:2px; color:var(--glo); }
+
+#scanbar { flex-shrink:0; height:2px; background:rgba(255,255,255,.05); }
+
+#scr { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding:14px 14px 40px; }
+#scr::-webkit-scrollbar { display:none; }
+
+/* Events button */
+#eventsWrap { display:flex; justify-content:center; padding:10px 0 20px; }
+#eventsBtn  {
+  display:flex; align-items:center; gap:14px; padding:14px 32px;
+  border-radius:50px; cursor:pointer;
+  border:1.5px solid rgba(201,168,76,.45);
+  background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.03));
+  transition:all .25s; -webkit-appearance:none;
+}
+#eventsBtn.loading { border-color:rgba(201,168,76,.6); background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(201,168,76,.06)); }
+#eventsBtn:active  { transform:scale(.96); }
+.eb-icon { font-size:24px; }
+.eb-text { display:flex; flex-direction:column; }
+.eb-main { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:var(--glo); }
+.eb-sub  { font-family:'DM Mono',monospace; font-size:8px; letter-spacing:1px; color:var(--gdim); text-transform:uppercase; }
+
+/* Status */
+#status { display:none; align-items:center; gap:8px; padding:8px 13px; margin-bottom:18px; background:var(--card); border:1px solid var(--edge); border-radius:10px; font-family:'DM Mono',monospace; font-size:10px; }
+#status.show { display:flex; }
+.dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.dot.spin { background:var(--gold); animation:blink 1.2s ease-in-out infinite; }
+.dot.ok   { background:var(--green); }
+.dot.err  { background:var(--red); }
+@keyframes blink { 0%,100%{opacity:1;}50%{opacity:.25;} }
+#stmsg { flex:1; color:var(--dim); }
+
+/* Day group header */
+.day-header {
+  font-family:'Bebas Neue',sans-serif; font-size:13px; letter-spacing:4px;
+  color:var(--gold); text-transform:uppercase;
+  padding:14px 2px 8px; border-bottom:1px solid rgba(201,168,76,.15);
+  margin-bottom:10px;
+}
+
+/* Event card */
+.event-card {
+  display:flex; gap:0; padding:0;
+  background:var(--card); border:1px solid var(--edge);
+  border-radius:14px; margin-bottom:9px; cursor:pointer;
+  overflow:hidden; text-decoration:none; color:inherit;
+  transition:border-color .2s;
+}
+.event-card:active { border-color:rgba(201,168,76,.4); }
+
+/* Time column */
+.event-time-col {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  flex-shrink:0; width:58px; padding:14px 8px;
+  background:rgba(201,168,76,.06);
+  border-right:1px solid rgba(255,255,255,.07);
+}
+.event-hour {
+  font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:1px;
+  color:var(--glo); line-height:1;
+}
+.event-ampm {
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:2px;
+  color:var(--gold); margin-top:2px;
+}
+.event-tbd {
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:1px;
+  color:var(--dim); text-align:center; line-height:1.4;
+}
+
+/* Info */
+.event-info { flex:1; min-width:0; padding:12px 13px; }
+.event-name {
+  font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:.5px;
+  color:var(--pale); line-height:1.15; margin-bottom:4px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.event-venue {
+  font-size:11px; font-weight:400; color:var(--dim);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  margin-bottom:5px;
+}
+.event-meta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.event-cat {
+  font-family:'DM Mono',monospace; font-size:8px; letter-spacing:1px;
+  color:rgba(201,168,76,.7); text-transform:uppercase;
+  background:rgba(201,168,76,.08); border-radius:4px; padding:2px 6px;
+}
+.event-dist {
+  font-family:'DM Mono',monospace; font-size:9px; color:var(--green);
+  margin-left:auto; flex-shrink:0;
+}
+
+/* No results / note */
+.no-events  { text-align:center; padding:40px 20px; font-family:'DM Mono',monospace; font-size:11px; color:var(--dim); letter-spacing:1px; line-height:1.8; }
+#locNote    { font-family:'DM Mono',monospace; font-size:9px; color:var(--dim); text-align:center; margin-bottom:12px; letter-spacing:.5px; display:none; }
+#locNote.show { display:block; }
+#eventsPane { display:none; }
+#eventsPane.show { display:block; }
+</style>
+</head>
+<body>
+<div id="sky"></div>
+<div id="app">
+  <div id="hdr">
+    <div>
+      <div class="logo">RoadGuide</div>
+      <div class="logo-tag">California</div>
+    </div>
+    <div class="hd-r">
+      <p>EVENTS NEAR YOU</p>
+      <p><span id="eventCount">—</span></p>
+    </div>
+  </div>
+  <div id="scanbar"></div>
+  <div id="scr">
+    <div id="eventsWrap">
+      <button id="eventsBtn" onclick="fetchEvents()">
+        <div class="eb-icon">🎟</div>
+        <div class="eb-text">
+          <div class="eb-main" id="evtLabel">Nearby Events</div>
+          <div class="eb-sub"  id="evtSub">Next 3 days within 30 miles</div>
+        </div>
+      </button>
+    </div>
+    <div id="status">
+      <div class="dot spin" id="dot"></div>
+      <div id="stmsg">Locating you…</div>
+    </div>
+    <div id="locNote"></div>
+    <div id="eventsPane"></div>
+  </div>
+</div>
+
+<script>
+var TM_KEY  = '';   // ← paste Ticketmaster API key here
+var userLat = null;
+var userLon = null;
+
+// ── Helpers ───────────────────────────────────────────────
+function setStatus(msg, cls) {
+  var s = document.getElementById('status');
+  s.className = 'show';
+  document.getElementById('dot').className = 'dot ' + cls;
+  document.getElementById('stmsg').textContent = msg;
+}
+function hideStatus() { document.getElementById('status').className = ''; }
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function dist(la1,lo1,la2,lo2) {
+  var R=3958.8, dL=(la2-la1)*Math.PI/180, dO=(lo2-lo1)*Math.PI/180;
+  var a=Math.sin(dL/2)*Math.sin(dL/2)+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dO/2)*Math.sin(dO/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ── Date helpers ──────────────────────────────────────────
+var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+var DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function localDate(dateStr) {
+  // dateStr = "2026-03-15"
+  var p = dateStr.split('-');
+  return new Date(+p[0], +p[1]-1, +p[2]);
+}
+
+function dayLabel(dateStr) {
+  var d   = localDate(dateStr);
+  var now = new Date();
+  var t   = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var diff = Math.round((d - t) / 86400000);
+  if (diff === 0) return 'TODAY  —  ' + DAYS[d.getDay()].toUpperCase() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
+  if (diff === 1) return 'TOMORROW  —  ' + DAYS[d.getDay()].toUpperCase() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
+  return DAYS[d.getDay()].toUpperCase() + '  —  ' + MONTHS[d.getMonth()] + ' ' + d.getDate();
+}
+
+function formatHour(timeStr) {
+  // timeStr = "19:30:00"
+  if (!timeStr) return null;
+  var parts = timeStr.split(':');
+  var h = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  var h12  = h % 12 || 12;
+  // show minutes only if not :00
+  var display = m > 0 ? h12 + ':' + String(m).padStart(2,'0') : String(h12);
+  return { hour: display, ampm: ampm };
+}
+
+// ── Render ────────────────────────────────────────────────
+function renderEvents(events) {
+  var pane = document.getElementById('eventsPane');
+  var count = document.getElementById('eventCount');
+
+  if (!events || !events.length) {
+    pane.innerHTML = '<div class="no-events">NO EVENTS FOUND<br>WITHIN 30 MILES<br>IN THE NEXT 3 DAYS</div>';
+    pane.className = 'show';
+    count.textContent = '0 EVENTS';
+    return;
+  }
+
+  // Group by date
+  var groups = {};
+  var order  = [];
+  events.forEach(function(ev) {
+    var d = (ev.dates && ev.dates.start && ev.dates.start.localDate) || 'unknown';
+    if (!groups[d]) { groups[d] = []; order.push(d); }
+    groups[d].push(ev);
+  });
+
+  var html = '';
+  order.forEach(function(dateStr) {
+    html += '<div class="day-header">' + dayLabel(dateStr) + '</div>';
+    groups[dateStr].forEach(function(ev) {
+      var timeStr  = (ev.dates && ev.dates.start && ev.dates.start.localTime) || '';
+      var tObj     = timeStr ? formatHour(timeStr) : null;
+      var venue    = (ev._embedded && ev._embedded.venues && ev._embedded.venues[0]) || {};
+      var venueName = venue.name || '';
+      var vLat     = venue.location ? parseFloat(venue.location.latitude)  : null;
+      var vLon     = venue.location ? parseFloat(venue.location.longitude) : null;
+      var miles    = (userLat && vLat) ? dist(userLat, userLon, vLat, vLon).toFixed(1) + ' mi' : '';
+      var seg      = (ev.classifications && ev.classifications[0] && ev.classifications[0].segment) ? ev.classifications[0].segment.name : '';
+      var genre    = (ev.classifications && ev.classifications[0] && ev.classifications[0].genre)   ? ev.classifications[0].genre.name   : '';
+      var cat      = (genre && genre !== 'Undefined') ? genre : seg;
+      var url      = ev.url || '#';
+
+      var timeHTML = tObj
+        ? '<div class="event-hour">' + tObj.hour + '</div><div class="event-ampm">' + tObj.ampm + '</div>'
+        : '<div class="event-tbd">TIME<br>TBA</div>';
+
+      html += '<a class="event-card" href="' + escHtml(url) + '" target="_blank" rel="noopener">'
+            + '<div class="event-time-col">' + timeHTML + '</div>'
+            + '<div class="event-info">'
+            + '<div class="event-name">'  + escHtml(ev.name)    + '</div>'
+            + '<div class="event-venue">' + escHtml(venueName)  + '</div>'
+            + '<div class="event-meta">'
+            + (cat   ? '<span class="event-cat">'  + escHtml(cat) + '</span>' : '')
+            + (miles ? '<span class="event-dist">' + miles + '</span>' : '')
+            + '</div></div></a>';
+    });
+  });
+
+  pane.innerHTML = html;
+  pane.className = 'show';
+  count.textContent = events.length + ' EVENTS';
+}
+
+// ── Ticketmaster call ─────────────────────────────────────
+function callTM(lat, lon) {
+  setStatus('Finding events near you…', 'spin');
+
+  // Date window: today → 3 days from now
+  var now   = new Date();
+  var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var end   = new Date(start); end.setDate(end.getDate() + 3);
+
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function tmDate(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T00:00:00Z';
+  }
+
+  var url = 'https://app.ticketmaster.com/discovery/v2/events.json'
+          + '?apikey='       + TM_KEY
+          + '&latlong='      + lat + ',' + lon
+          + '&radius=30&unit=miles'
+          + '&startDateTime=' + tmDate(start)
+          + '&endDateTime='   + tmDate(end)
+          + '&size=50'
+          + '&sort=date,asc';
+
+  fetch(url)
+    .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data) {
+      hideStatus();
+      document.getElementById('eventsBtn').classList.remove('loading');
+      document.getElementById('evtLabel').textContent = 'Nearby Events';
+      document.getElementById('evtSub').textContent   = 'Tap to refresh';
+      document.getElementById('locNote').className    = 'show';
+      document.getElementById('locNote').textContent  = '📍 Within 30 miles · Next 3 days';
+      var evs = (data._embedded && data._embedded.events) || [];
+      renderEvents(evs);
+    })
+    .catch(function(err) {
+      hideStatus();
+      document.getElementById('eventsBtn').classList.remove('loading');
+      document.getElementById('evtLabel').textContent = 'Nearby Events';
+      document.getElementById('evtSub').textContent   = 'Tap to try again';
+      setStatus('Error: ' + err.message + ' — showing demo data', 'err');
+      useDemoData(lat, lon);
+    });
+}
+
+// ── Demo data ─────────────────────────────────────────────
+function useDemoData(lat, lon) {
+  var today = new Date();
+  function dStr(offset) {
+    var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+    return d.getFullYear() + '-'
+      + String(d.getMonth()+1).padStart(2,'0') + '-'
+      + String(d.getDate()).padStart(2,'0');
+  }
+  var demo = [
+    { name:"Oakland Symphony", url:"#",
+      dates:{ start:{ localDate:dStr(0), localTime:"19:30:00" }},
+      classifications:[{ segment:{name:"Arts & Theatre"}, genre:{name:"Classical"} }],
+      _embedded:{ venues:[{ name:"Paramount Theatre, Oakland", location:{ latitude:"37.8044", longitude:"-122.2712" }}]}},
+    { name:"Bay Area Comedy Night", url:"#",
+      dates:{ start:{ localDate:dStr(0), localTime:"20:00:00" }},
+      classifications:[{ segment:{name:"Arts & Theatre"}, genre:{name:"Comedy"} }],
+      _embedded:{ venues:[{ name:"Punch Line SF", location:{ latitude:"37.7984", longitude:"-122.3970" }}]}},
+    { name:"Golden State Warriors vs Lakers", url:"#",
+      dates:{ start:{ localDate:dStr(1), localTime:"18:00:00" }},
+      classifications:[{ segment:{name:"Sports"}, genre:{name:"Basketball"} }],
+      _embedded:{ venues:[{ name:"Chase Center, San Francisco", location:{ latitude:"37.7679", longitude:"-122.3874" }}]}},
+    { name:"Dave Matthews Band", url:"#",
+      dates:{ start:{ localDate:dStr(1), localTime:"20:00:00" }},
+      classifications:[{ segment:{name:"Music"}, genre:{name:"Rock"} }],
+      _embedded:{ venues:[{ name:"Shoreline Amphitheatre, Mountain View", location:{ latitude:"37.4267", longitude:"-122.0806" }}]}},
+    { name:"SF Giants vs San Diego Padres", url:"#",
+      dates:{ start:{ localDate:dStr(2), localTime:"13:05:00" }},
+      classifications:[{ segment:{name:"Sports"}, genre:{name:"Baseball"} }],
+      _embedded:{ venues:[{ name:"Oracle Park, San Francisco", location:{ latitude:"37.7786", longitude:"-122.3893" }}]}},
+    { name:"Kendrick Lamar — Grand National Tour", url:"#",
+      dates:{ start:{ localDate:dStr(2), localTime:"20:30:00" }},
+      classifications:[{ segment:{name:"Music"}, genre:{name:"Hip-Hop/Rap"} }],
+      _embedded:{ venues:[{ name:"Oracle Arena, Oakland", location:{ latitude:"37.7502", longitude:"-122.2030" }}]}},
+  ];
+  document.getElementById('locNote').className   = 'show';
+  document.getElementById('locNote').textContent = '⚡ Demo mode — add Ticketmaster API key for live events';
+  renderEvents(demo);
+}
+
+// ── Entry point ───────────────────────────────────────────
+function fetchEvents() {
+  document.getElementById('eventsBtn').classList.add('loading');
+  document.getElementById('evtLabel').textContent = 'LOCATING…';
+  document.getElementById('evtSub').textContent   = 'Getting your position';
+
+  if (!navigator.geolocation) {
+    userLat = 37.8857; userLon = -122.1180;
+    if (!TM_KEY) { useDemoData(userLat, userLon); return; }
+    callTM(userLat, userLon); return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    function(p) {
+      userLat = p.coords.latitude; userLon = p.coords.longitude;
+      if (!TM_KEY) { useDemoData(userLat, userLon); return; }
+      callTM(userLat, userLon);
+    },
+    function() {
+      userLat = 37.8857; userLon = -122.1180;
+      if (!TM_KEY) { useDemoData(userLat, userLon); return; }
+      callTM(userLat, userLon);
+    },
+    { timeout:8000, maximumAge:60000 }
+  );
+}
+</script>
+</body>
+</html>
