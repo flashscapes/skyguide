@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#080c14">
+<title>YouTube Test 3 — RoadGuide</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#080c14;--gold:#c9a84c;--glo:#e8c97a;--gdim:rgba(201,168,76,.35);--pale:#eef2ff;--dim:rgba(220,228,255,.45);--card:rgba(255,255,255,.05);--edge:rgba(255,255,255,.09);--green:#50c880;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--ink);color:var(--pale);font-family:'DM Sans',sans-serif;}
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 50% at 15% 10%,rgba(18,34,68,.9) 0%,transparent 100%),
+             radial-gradient(ellipse 60% 60% at 85% 90%,rgba(10,18,38,.95) 0%,transparent 100%),var(--ink);}
+#app{position:relative;z-index:1;padding:env(safe-area-inset-top,44px) 14px 40px;}
+.card{border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--edge);margin-bottom:14px;cursor:pointer;}
+.card.rank-1{border-color:rgba(201,168,76,.4);box-shadow:0 0 0 1px rgba(201,168,76,.1),0 8px 32px rgba(0,0,0,.4);}
+.card-img{width:100%;height:120px;object-fit:cover;display:block;background:rgba(255,255,255,.04);}
+.card-body{padding:13px 15px 14px;}
+.card-rank{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:1px;}
+.card-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--pale);line-height:1.05;}
+.card-county{font-family:'DM Mono',monospace;font-size:9px;color:var(--dim);margin-top:2px;margin-bottom:8px;}
+.divider{width:100%;height:1px;background:rgba(255,255,255,.06);margin-bottom:9px;}
+.card-fact{font-size:13px;line-height:1.68;font-weight:300;color:rgba(220,228,255,.85);}
+.card-fact em{color:var(--glo);font-style:normal;font-weight:500;}
+.yt-link{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;color:rgba(255,80,80,.8);text-decoration:none;padding:6px 0 2px;}
+.yt-link:active{color:#ff5050;}
+.hdr{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:5px;margin-bottom:4px;}
+.hdr-tag{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:20px;}
+</style>
+</head>
+<body>
+<div id="sky"></div>
+<div id="app">
+  <div class="hdr">RoadGuide</div>
+  <div class="hdr-tag">YouTube Link Test</div>
+  <div id="cards"></div>
+</div>
+<script>
+var landmarks = [
+  {
+    name: 'Alcatraz Island',
+    county: 'San Francisco',
+    cat: 'Historic Site',
+    rank: '# 1 Nearest',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Alcatraz_Island_as_seen_from_above.jpg/320px-Alcatraz_Island_as_seen_from_above.jpg',
+    fact: 'The world\'s most famous prison held <em>Al Capone, Machine Gun Kelly</em> and survived 36 escape attempts.'
+  },
+  {
+    name: 'Mount Diablo Summit',
+    county: 'Contra Costa',
+    cat: 'Mountain',
+    rank: '# 2 Nearest',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Mount_Diablo_from_summit.jpg/320px-Mount_Diablo_from_summit.jpg',
+    fact: 'On a clear day you can see <em>35 of California\'s 58 counties</em> from this 3,849-foot summit.'
+  },
+  {
+    name: 'Muir Woods',
+    county: 'Marin',
+    cat: 'National Monument',
+    rank: '# 3 Nearest',
+    photo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Muir_Woods_National_Monument.jpg/320px-Muir_Woods_National_Monument.jpg',
+    fact: 'The redwoods here are between <em>500 and 1,200 years old</em>. The tallest is 258 feet.'
+  }
+];
+
+function buildCards() {
+  var html = '';
+  landmarks.forEach(function(lm, i) {
+    html += '<div class="card' + (i === 0 ? ' rank-1' : '') + '">'
+          + '<img class="card-img" src="' + lm.photo + '" alt="' + lm.name + '">'
+          + '<div class="card-body">'
+          + '<div class="card-rank">' + lm.rank + '</div>'
+          + '<div class="card-name">' + lm.name + '</div>'
+          + '<div class="card-county">' + lm.county + ' · ' + lm.cat + '</div>'
+          + '<div class="divider"></div>'
+          + '<div class="card-fact">' + lm.fact + '</div>'
+          + '<a class="yt-link" href="https://www.youtube.com/results?search_query=' + encodeURIComponent(lm.name) + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">&#9654; Watch on YouTube</a>'
+          + '</div></div>';
+  });
+  document.getElementById('cards').innerHTML = html;
+}
+
+buildCards();
+</script>
+</body>
+</html>
