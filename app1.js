@@ -303,7 +303,7 @@ function renderList() {
 // ─────────────────────────────────────────────────────────
 // VOICE — ElevenLabs with browser fallback
 // ─────────────────────────────────────────────────────────
-var XI_KEY    = 'PASTE_YOUR_ELEVENLABS_KEY_HERE'; // ← replace with your key
+var XI_KEY    = 'sk_06796988e7d88caf44f749e1a23022fce2f6e841e0821007'; // ← replace with your key
 var XI_VOICE  = 'nPczCjzI2devNBz1zQrb';
 var XI_MODEL  = 'eleven_turbo_v2_5';
 var xi_audio  = null;
