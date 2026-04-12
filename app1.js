@@ -424,25 +424,8 @@ if (window.speechSynthesis) {
 }
 
 // ─────────────────────────────────────────────────────────
-async function askGemini() {
-  const name = document.getElementById('oname').innerText;
-  const textBox = document.getElementById('geminiText');
-  const btn = document.getElementById('geminiBtn');
-
-  btn.innerText = "THINKING...";
-  textBox.style.display = "block";
-  textBox.innerText = "Asking the AI...";   
-  try {
- const response = await fetch('https://roadguide-lime.vercel.app/api/gemini', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ landmark: name })
-  });
-      const data = await response.json();
-    textBox.innerText = data.text || "No response.";
-    btn.innerText = "✨ ELABORATE WITH GEMINI";
-  } catch (err) {
-    textBox.innerText = "Error reaching Gemini.";
-    btn.innerText = "✨ ELABORATE WITH GEMINI";
-  }
+function openGemini() {
+  var name = document.getElementById('oname').innerText;
+  var prompt = encodeURIComponent('Be my tour guide at ' + name);
+  window.open('https://gemini.google.com/app?q=' + prompt, '_blank');
 }
