@@ -426,6 +426,6 @@ if (window.speechSynthesis) {
 // ─────────────────────────────────────────────────────────
 function openGemini() {
   var name = document.getElementById('oname').innerText;
-  var prompt = encodeURIComponent('Be my tour guide at ' + name);
-  window.open('https://gemini.google.com/app?q=' + prompt, '_blank');
+  var prompt = encodeURIComponent('You are my tour guide. I am standing at ' + name + ' in California. Give me a fascinating introduction, then ask what I would like to know more about. I will be speaking to you by voice.');
+  window.open('https://chatgpt.com/?q=' + prompt, '_blank');
 }
