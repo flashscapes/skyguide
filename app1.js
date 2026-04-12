@@ -432,7 +432,6 @@ async function askGemini() {
   btn.innerText = "THINKING...";
   textBox.style.display = "block";
   textBox.innerText = "Asking the AI...";
-
   const response = await fetch('https://YOUR-PROJECT.vercel.app/api/gemini', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
