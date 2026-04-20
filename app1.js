@@ -336,7 +336,6 @@ function xiSpeak(text, onStart, onEnd) {
   });
   return true;
 }
-}
 
 function xiStop() {
   if (window.speechSynthesis) window.speechSynthesis.cancel();
