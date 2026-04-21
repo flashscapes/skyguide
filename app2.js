@@ -1,4 +1,4 @@
-
+// ─────────────────────────────────────────────────────────
 // AI CHAT PANEL
 // ─────────────────────────────────────────────────────────
 var aiHistory = [];
@@ -14,6 +14,10 @@ function openAI() {
   var msgs  = document.getElementById('aiMessages');
   var label = document.getElementById('askAiLabel');
   var name  = document.getElementById('aiPanelName');
+
+  // Unlock iOS audio immediately on user tap
+  var unlockAudio = new Audio();
+  unlockAudio.play().catch(function(){});
 
   name.textContent = aiLandmark.name.toUpperCase();
   msgs.innerHTML = '';
