@@ -1,11 +1,11 @@
 // ─────────────────────────────────────────────────────────
 // BUILD MASTER LANDMARK ARRAY FROM ALL LOADED JS FILES
 // ─────────────────────────────────────────────────────────
-
+ 
 var ALL_LANDMARKS = (function() {
   var seen = {};
   var out  = [];
-
+ 
   function norm(lm) {
     var lat = (lm.lat != null) ? lm.lat : (lm.coords ? lm.coords.lat : null);
     var lon = (lm.lon != null) ? lm.lon
@@ -30,7 +30,7 @@ var ALL_LANDMARKS = (function() {
       fact:   fact
     };
   }
-
+ 
   function merge(arr) {
     if (!arr || !arr.length) return;
     for (var i = 0; i < arr.length; i++) {
@@ -42,18 +42,18 @@ var ALL_LANDMARKS = (function() {
       out.push(n);
     }
   }
-
+ 
   if (typeof LANDMARKS             !== 'undefined') merge(LANDMARKS);
   if (typeof LANDMARKS_SOUTH       !== 'undefined') merge(LANDMARKS_SOUTH);
   if (typeof LANDMARKS_TOPUP       !== 'undefined') merge(LANDMARKS_TOPUP);
   if (typeof LANDMARKS_VALLEY      !== 'undefined') merge(LANDMARKS_VALLEY);
   if (typeof FILM_LANDMARKS        !== 'undefined') merge(FILM_LANDMARKS);
-
+ 
   return out;
 })();
-
+ 
 document.getElementById('tc').textContent = ALL_LANDMARKS.length;
-
+ 
 // ─────────────────────────────────────────────────────────
 // STATE
 // ─────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ var userLon         = null;
 var sorted          = [];
 var overlayLandmark = null;
 var activeCategory  = null;
-
+ 
 // ─────────────────────────────────────────────────────────
 // CATEGORY FILTER
 // ─────────────────────────────────────────────────────────
@@ -94,14 +94,10 @@ function setCat(cat, el) {
     if (lbl)     lbl.style.display    = '';
     if (listen)  listen.style.display = '';
   }
-  if (cat === 'events') {
-    activeCategory = null;
-  } else {
-    activeCategory = cat;
-    sortAndRender();
-  }
+  activeCategory = cat;
+  sortAndRender();
 }
-
+ 
 function getFiltered() {
   if (!activeCategory) return ALL_LANDMARKS;
   var c = activeCategory;
@@ -127,7 +123,7 @@ function getFiltered() {
     return false;
   });
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // GPS
 // ─────────────────────────────────────────────────────────
@@ -146,7 +142,7 @@ function startGPS() {
     timeout: 20000
   });
 }
-
+ 
 function onPos(pos) {
   userLat = pos.coords.latitude;
   userLon = pos.coords.longitude;
@@ -158,13 +154,13 @@ function onPos(pos) {
   setDot('live');
   sortAndRender();
 }
-
+ 
 function onErr(e) {
   setDot('err');
   setMsg('Location unavailable — showing all landmarks');
   sortAndRender();
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // DISTANCE + BEARING MATH
 // ─────────────────────────────────────────────────────────
@@ -177,7 +173,7 @@ function haversine(la1, lo1, la2, lo2) {
            * Math.sin(dLo / 2) * Math.sin(dLo / 2);
   return R * 2 * Math.asin(Math.sqrt(a));
 }
-
+ 
 function bearing(la1, lo1, la2, lo2) {
   var dLo  = (lo2 - lo1) * Math.PI / 180;
   var y    = Math.sin(dLo) * Math.cos(la2 * Math.PI / 180);
@@ -187,13 +183,13 @@ function bearing(la1, lo1, la2, lo2) {
   var dirs = ['N','NE','E','SE','S','SW','W','NW'];
   return dirs[Math.round(deg / 45) % 8];
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // SORT & RENDER
 // ─────────────────────────────────────────────────────────
 function sortAndRender() {
   var base = getFiltered();
-
+ 
   if (userLat !== null) {
     sorted = base.map(function(lm) {
       return Object.assign({}, lm, {
@@ -202,11 +198,11 @@ function sortAndRender() {
       });
     });
     sorted.sort(function(a, b) { return a.dist - b.dist; });
-
+ 
     var nearest = sorted[0] ? sorted[0].dist : 99;
     document.getElementById('scanfill').style.width =
       Math.min(100, Math.round(100 / (nearest + 1))) + '%';
-
+ 
     var nearby = sorted.filter(function(l) { return l.dist < 5; }).length;
     document.getElementById('dc').textContent = nearby;
     setMsg(sorted.length + ' landmarks · sorted by distance');
@@ -215,16 +211,16 @@ function sortAndRender() {
     document.getElementById('dc').textContent = '—';
     setMsg(sorted.length + ' landmarks loaded');
   }
-
+ 
   var countEl = document.getElementById('catCount');
   countEl.textContent = activeCategory
     ? sorted.length + ' landmark' + (sorted.length !== 1 ? 's' : '') + ' in this category'
     : '';
-
+ 
   renderCards();
   renderList();
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // RENDER TOP 2 CARDS
 // ─────────────────────────────────────────────────────────
@@ -266,7 +262,7 @@ function renderCards() {
       + '</div>';
   }
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // RENDER SCROLLABLE LIST
 // ─────────────────────────────────────────────────────────
@@ -297,53 +293,17 @@ function renderList() {
   }
   list.innerHTML = html;
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // VOICE ENGINE
 // ─────────────────────────────────────────────────────────
 var _speaking = false;
-
-function xiSpeak(text, onStart, onEnd) {
-  xiStop();
-
-  // Unlock iOS audio immediately on user tap
-  var audio = new Audio();
-  audio.play().catch(function(){});
-
-  fetch('/api/speak', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text: text })
-  })
-  .then(function(r) { return r.blob(); })
-  .then(function(blob) {
-    var url = URL.createObjectURL(blob);
-    audio.src = url;
-    _speaking = true;
-    audio.onended = function() {
-      _speaking = false;
-      URL.revokeObjectURL(url);
-      if (onEnd) onEnd();
-    };
-    audio.onerror = function() {
-      _speaking = false;
-      if (onEnd) onEnd();
-      browserSpeak(text, null, onEnd);
-    };
-    audio.load();
-    audio.play();
-  })
-  .catch(function() {
-    browserSpeak(text, null, onEnd);
-  });
-  return true;
-}
-
+ 
 function xiStop() {
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   _speaking = false;
 }
-
+ 
 function browserSpeak(text, onStart, onEnd) {
   if (!window.speechSynthesis) { if (onEnd) onEnd(); return; }
   window.speechSynthesis.cancel();
@@ -367,14 +327,14 @@ function browserSpeak(text, onStart, onEnd) {
     window.speechSynthesis.speak(utt);
   }, isIOS ? 100 : 0);
 }
-
+ 
 function isSpeaking() {
   return _speaking || (window.speechSynthesis && window.speechSynthesis.speaking);
 }
-
+ 
 // ── Voice dropdown — hidden on iOS, visible on desktop ──
 var selectedVoice = null;
-
+ 
 function populateVoices() {
   if (!window.speechSynthesis) return;
   var voices = window.speechSynthesis.getVoices();
@@ -405,26 +365,26 @@ function populateVoices() {
   sel.value     = chosen ? chosen.name : '';
   selectedVoice = chosen || null;
 }
-
+ 
 function saveVoice() {
   var sel = document.getElementById('voiceSelect');
   if (!sel || !window.speechSynthesis) return;
   selectedVoice = window.speechSynthesis.getVoices().find(function(v){ return v.name === sel.value; }) || null;
   try { localStorage.setItem('rg_voice', sel.value); } catch(e) {}
 }
-
+ 
 function getVoice() {
   var sel  = document.getElementById('voiceSelect');
   var name = sel ? sel.value : '';
   if (!name || !window.speechSynthesis) return null;
   return window.speechSynthesis.getVoices().find(function(v){ return v.name === name; }) || null;
 }
-
+ 
 if (window.speechSynthesis) {
   window.speechSynthesis.onvoiceschanged = populateVoices;
   populateVoices();
 }
-
+ 
 // ─────────────────────────────────────────────────────────
 // OPEN CHATGPT
 // ─────────────────────────────────────────────────────────
