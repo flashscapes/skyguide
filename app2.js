@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────
 // AI CHAT PANEL
 // ─────────────────────────────────────────────────────────
-var VERCEL_URL = 'https://roadguide.vercel.app';
+var VERCEL_URL = 'https://roadguide-lime.vercel.app';
 
 var aiHistory  = [];
 var aiLandmark = null;
