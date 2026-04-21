@@ -14,8 +14,10 @@ function topListen() {
     sub.textContent = 'Tap to hear nearest landmark';
     return;
   }
-
-  var text = lm.name + '. ' + stripTags(lm.fact);
+var full = stripTags(lm.fact);
+var sentences = full.match(/[^.!?]+[.!?]+/g) || [full];
+var short = sentences.slice(0, 2).join(' ').trim();
+var text = lm.name + '. ' + short;
 
   var onStart = function() {
     btn.classList.add('speaking');
@@ -102,7 +104,10 @@ function overlayListen() {
     return;
   }
 
-  var text = overlayLandmark.name + '. ' + stripTags(overlayLandmark.fact);
+var full = stripTags(overlayLandmark.fact);
+var sentences = full.match(/[^.!?]+[.!?]+/g) || [full];
+var short = sentences.slice(0, 2).join(' ').trim();
+var text = overlayLandmark.name + '. ' + short;
 
   var onStart = function() {
     btn.textContent = '⏹ Stop';
