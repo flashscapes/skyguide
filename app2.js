@@ -178,15 +178,10 @@ function callAI(userText, isOpening) {
 // MIC / SPEECH RECOGNITION
 // ─────────────────────────────────────────────────────────
 function startMic() {
-  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert('Voice input is not supported in Safari. Please type your question instead.');
-    return;
-  }
-
+  var unlock = new Audio();
+  unlock.play().catch(function(){});
+  if (aiRecog) return;
   var mic = document.getElementById('aiMicBtn');
-  var inp = document.getElementById('aiInput');
-
   aiSpeakStop();
 
   aiRecog = new SpeechRecognition();
