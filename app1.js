@@ -305,7 +305,6 @@ var _speaking = false;
 
 function xiSpeak(text, onStart, onEnd) {
   xiStop();
-  if (onStart) onStart();
 
   // Unlock iOS audio immediately on user tap
   var audio = new Audio();
