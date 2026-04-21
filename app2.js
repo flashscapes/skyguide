@@ -14,6 +14,9 @@ function topListen() {
     sub.textContent = 'Tap to hear nearest landmark';
     return;
   }
+    lbl.textContent = 'LOADING...';
+  sub.textContent = 'Preparing audio';
+  btn.classList.add('speaking');
 var full = stripTags(lm.fact);
 var sentences = full.match(/[^.!?]+[.!?]+/g) || [full];
 var short = sentences.slice(0, 2).join(' ').trim();
