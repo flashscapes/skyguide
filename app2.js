@@ -1,5 +1,4 @@
-Here is the complete app2.js. Select all, delete, paste this entire block:
-javascript// ─────────────────────────────────────────────────────────
+
 // AI CHAT PANEL
 // ─────────────────────────────────────────────────────────
 var aiHistory = [];
